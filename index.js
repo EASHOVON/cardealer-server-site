@@ -21,16 +21,23 @@ async function run() {
     await client.connect();
     console.log("db connected");
     const database = client.db("carDealer");
-    const productssCollection = database.collection("products");
+    const productsCollection = database.collection("products");
     const orderCollection = database.collection("order");
     const reviewsCollection = database.collection("reviews");
     const usersCollection = database.collection("users");
 
     // GET Products API
     app.get("/products", async (req, res) => {
-      const cursor = productssCollection.find({});
+      const cursor = productsCollection.find({});
       const products = await cursor.toArray();
       res.send(products);
+    });
+
+    // Post Product for admin
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await productsCollection.insertOne(product);
+      res.json(result);
     });
 
     // Get Reviews API
@@ -83,21 +90,50 @@ async function run() {
       res.json(result);
     });
 
-    // Get Order
-    app.get("/orders", async (req, res) => {
-      const email = req.query.customerEmail;
-      const query = { email: email };
+    // Get Order For Special User
+    app.get("/orders/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { customerEmail: email };
       const cursor = orderCollection.find(query);
       const orders = await cursor.toArray();
       res.json(orders);
     });
 
-    // Delete Specific Tour API
+    // Get Order All for Admin
+    app.get("/orders", async (req, res) => {
+      const cursor = orderCollection.find({});
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+
+    // Updet Status
+    app.put("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedStatus = req.body;
+      console.log(id, updatedStatus);
+      const filter = { _id: ObjectId(id) };
+      const updateInfo = {
+        $set: {
+          status: updatedStatus.status,
+        },
+      };
+      const result = await orderCollection.updateOne(filter, updateInfo);
+      res.send(result);
+    });
+
+    // Delete Specific Order API
     app.delete("/orders/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const order = await orderCollection.deleteOne(query);
       res.json(order);
+    });
+    // Delete Specific Product
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await productsCollection.deleteOne(query);
+      res.json(product);
     });
   } finally {
     // await client.close();
