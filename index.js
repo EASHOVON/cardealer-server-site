@@ -19,7 +19,6 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    console.log("db connected");
     const database = client.db("carDealer");
     const productsCollection = database.collection("products");
     const orderCollection = database.collection("order");
@@ -83,7 +82,6 @@ async function run() {
     // User Make Admin
     app.put("/users", async (req, res) => {
       const user = req.body;
-      console.log("put", user);
       const filter = { email: user.email };
       const updateDoc = { $set: { role: "admin" } };
       const result = await usersCollection.updateOne(filter, updateDoc);
@@ -110,7 +108,6 @@ async function run() {
     app.put("/orders/:id", async (req, res) => {
       const id = req.params.id;
       const updatedStatus = req.body;
-      console.log(id, updatedStatus);
       const filter = { _id: ObjectId(id) };
       const updateInfo = {
         $set: {
